@@ -1,0 +1,31 @@
+name: Make jar
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  jar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Convert zip to jar
+        run: |
+          mkdir pack
+          unzip -q thanpisitkub_origin.zip -d pack
+          rm -f pack/README.txt
+          mkdir -p pack/META-INF
+          cat > pack/META-INF/mods.toml <<'EOF'
+          modLoader="lowcodefml"
+          loaderVersion="[40,)"
+          license="MIT"
+
+          [[mods]]
+          modId="thanpisitkub"
+          version="1.0.0"
+          displayName="thanpisitkub (Origins add-on)"
+          description="Origin thanpisitkub: Galaxy Impact + Galaxy Divide"
+          EOF
+          cd pack && zip -q -r ../thanpisitkub-1.0.0.jar .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: thanpisitkub-jar
+          path: thanpisitkub-1.0.0.jar
