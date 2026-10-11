@@ -9,8 +9,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Convert zip to jar
         run: |
+          ZIP="$(ls *.zip 2>/dev/null | head -1)"
+          if [ -z "$ZIP" ]; then echo "ไม่พบไฟล์ .zip ใน repo"; exit 1; fi
           mkdir pack
-          unzip -q thanpisitkub_origin.zip -d pack
+          unzip -q "$ZIP" -d pack
           rm -f pack/README.txt
           mkdir -p pack/META-INF
           cat > pack/META-INF/mods.toml <<'EOF'
