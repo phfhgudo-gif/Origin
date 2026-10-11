@@ -11,11 +11,15 @@ jobs:
         run: |
           ZIP="$(ls *.zip 2>/dev/null | head -1)"
           if [ -z "$ZIP" ]; then echo "ไม่พบไฟล์ .zip ใน repo"; exit 1; fi
-          mkdir pack
+          rm -rf pack && mkdir pack
           unzip -q "$ZIP" -d pack
-          rm -f pack/README.txt
-          mkdir -p pack/META-INF
-          cat > pack/META-INF/mods.toml <<'EOF'
+          M="$(find pack -type d -name thanpisitkub -path '*data/thanpisitkub' | head -1)"
+          if [ -z "$M" ]; then echo "ไม่พบโฟลเดอร์ data/thanpisitkub ใน zip"; find pack | head -40; exit 1; fi
+          ROOT="$(dirname "$(dirname "$M")")"
+          rm -f "$ROOT/README.txt"
+          mkdir -p "$ROOT/META-INF"
+          echo '{"pack":{"description":"thanpisitkub","pack_format":15}}' > "$ROOT/pack.mcmeta"
+          cat > "$ROOT/META-INF/mods.toml" <<'EOF'
           modLoader="lowcodefml"
           loaderVersion="[40,)"
           license="MIT"
@@ -26,7 +30,9 @@ jobs:
           displayName="thanpisitkub (Origins add-on)"
           description="Origin thanpisitkub: Galaxy Impact + Galaxy Divide"
           EOF
-          cd pack && zip -q -r ../thanpisitkub-1.0.0.jar .
+          (cd "$ROOT" && zip -q -r "$GITHUB_WORKSPACE/thanpisitkub-1.0.0.jar" .)
+          echo "--- ไฟล์ระดับบนสุดใน jar ---"
+          unzip -l thanpisitkub-1.0.0.jar | head -15
       - uses: actions/upload-artifact@v4
         with:
           name: thanpisitkub-jar
